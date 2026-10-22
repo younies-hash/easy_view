@@ -6,6 +6,8 @@ import subprocess
 import pyautogui
 import os
 
+from requests import request
+
 with open('urls.json') as f:
     urls = json.load(f)
     
@@ -41,25 +43,27 @@ def start():
     time.sleep(5)
     return jsonify({'status': 'TV started'})
 
-@app.route('/tv/up')
-def press_up():
-    pyautogui.press('up')
-    return jsonify({'status': 'nav up'})
+@app.route('/command', methods=['POST'])
+def handle_command():
+    # 1. Get the JSON data from the Flutter app
+    data = request.get_json()
+    action = data.get('action')
+    
+    print(f"Received command: {action}")
 
-@app.route('/tv/down')
-def press_down():
-    pyautogui.press('down')
-    return jsonify({'status': 'nav down'})
+    # 2. Execute the command based on the action
+    if action == 'Vol +':
+        pyautogui.press('volumeup')
+    elif action == 'Vol -':
+        pyautogui.press('volumedown')
+    elif action == 'shutdown':
+        os.system("shutdown /s /t 0") # Windows shutdown
+    else:
+        return jsonify({"status": "error", "message": "Unknown command"}), 400
 
-@app.route('/tv/select')
-def select():
-    pyautogui.press('enter')
-    return jsonify({'status': 'selecte'})
+    return jsonify({"status": "success", "message": f"{action} executed"}), 200
 
-@app.route('/tv/back')
-def press_back():
-    pyautogui.press('esc')
-    return jsonify({'status': 'back'})
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

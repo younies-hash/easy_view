@@ -1,8 +1,8 @@
 // ignore_for_file: prefer_const_constructors, avoid_print
 
-import 'dart:io';
-import 'package:easy_view_client/ui/buttons.dart';
+import 'package:easy_view_client/api.dart';
 import 'package:flutter/material.dart';
+import 'ui/remote_button.dart';
 
 List<Map<String, String>> urls = [
   {"youtube1": "youtube.com/tv"},
@@ -22,7 +22,8 @@ class MyApp extends StatelessWidget {
       title: 'Easy View Remote',
       theme: ThemeData(
         brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple, brightness: Brightness.dark),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Easy View Remote'),
@@ -43,21 +44,28 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-        actions:[
-          // POWER BUTTON
-          IconButton(
-            icon: const Icon(Icons.power_settings_new, color: Colors.redAccent),
-            onPressed: () {
-              print('Power Off command sent');
-              // TODO: Add HTTP call to shutdown PC
-            },
-          ),
-          ]
-      ),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(widget.title),
+          actions: [
+            // POWER BUTTON
+            IconButton(
+              icon:
+                  const Icon(Icons.power_settings_new, color: Colors.redAccent),
+              onPressed: () async {
+                bool success = await ApiService.sendCommand('shutdown');
+
+                if (!success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content:
+                            Text('Failed to send command. Check connection.')),
+                  );
+                }
+              },
+            ),
+          ]),
       body: Padding(
-          padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -71,17 +79,26 @@ class _MyHomePageState extends State<MyHomePage> {
                     mainAxisSpacing: 10,
                     childAspectRatio: 1.5, // square cells
                   ),
-                  shrinkWrap: true, // Use this to make the GridView take only the space it needs
-                  physics: NeverScrollableScrollPhysics(), // Disable scrolling for the GridView
+                  shrinkWrap:
+                      true, // Use this to make the GridView take only the space it needs
+                  physics:
+                      NeverScrollableScrollPhysics(), // Disable scrolling for the GridView
                   itemCount: urls.length,
                   itemBuilder: (context, index) {
                     final channelName = urls[index].keys.first;
                     final channelUrl = urls[index].values.first;
                     return ElevatedButton(
-                      onPressed: () {
-                        // Handle button press
-                        print('Button pressed for URL: $channelUrl');
-                        // TODO: Add HTTP call to send URL to PC
+                      onPressed: () async {
+                        bool success = await ApiService.sendCommand('channel',
+                            url: channelUrl);
+
+                        if (!success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'Failed to send command. Check connection.')),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.all(12),
@@ -104,44 +121,58 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             const SizedBox(height: 24),
-        
+
             Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, -4),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24), // Extra padding at top for breathing room
-            
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.fromLTRB(
+                  16, 20, 16, 24), // Extra padding at top for breathing room
+
               child: Column(
                 children: [
-            // PLAYBACK CONTROLS
-            const Text('Playback', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildControlButton(Icons.skip_previous, 'Prev'),
-                _buildControlButton(Icons.play_arrow, 'Play/Pause', isLarge: true),
-                _buildControlButton(Icons.skip_next, 'Next'),
-              ],
-            ),
-            const SizedBox(height: 24),
-                  // VOLUME CONTROLS
-                  const Text('Volume', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  // PLAYBACK CONTROLS
+                  const Text('Playback',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildControlButton(Icons.volume_off, 'Mute'),
-                      _buildControlButton(Icons.volume_down, 'Vol -'),
-                      _buildControlButton(Icons.volume_up, 'Vol +'),
+                      buildControlButton(context, 'Prev',
+                          icon: Icons.skip_previous, action: 'prev'),
+                      buildControlButton(context, 'Play/Pause',
+                          icon: Icons.play_arrow,
+                          action: 'play_pause',
+                          isLarge: true),
+                      buildControlButton(context, 'Next',
+                          icon: Icons.skip_next, action: 'next'),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // VOLUME CONTROLS
+                  const Text('Volume',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      buildControlButton(context, 'Mute',
+                          icon: Icons.volume_off, action: 'mute'),
+                      buildControlButton(context, 'Vol -',
+                          icon: Icons.volume_down, action: 'volume_down'),
+                      buildControlButton(context, 'Vol +',
+                          icon: Icons.volume_up, action: 'volume_up'),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -156,7 +187,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       children: [
                         Icon(Icons.wifi, color: Colors.green, size: 20),
                         SizedBox(width: 8),
-                        Text('Status: Ready to connect', style: TextStyle(color: Colors.green)),
+                        Text('Status: Ready to connect',
+                            style: TextStyle(color: Colors.green)),
                       ],
                     ),
                   ),
@@ -168,29 +200,4 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-// Helper widget for the dock buttons to keep code clean
-  Widget _buildControlButton(IconData icon, String label, {bool isLarge = false}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton.filled(
-          icon: Icon(icon, size: isLarge ? 32 : 28),
-          style: IconButton.styleFrom(
-            backgroundColor: isLarge 
-                ? Theme.of(context).colorScheme.primary 
-                : Theme.of(context).colorScheme.primaryContainer,
-            foregroundColor: isLarge 
-                ? Theme.of(context).colorScheme.onPrimary 
-                : Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
-          onPressed: () {
-            print('$label pressed');
-          },
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-      ],
-    );
-  }
 }
-
