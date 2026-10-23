@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'ui/remote_button.dart';
 
 List<Map<String, String>> urls = [
-  {"youtube1": "youtube.com/tv"},
-  {"youtube2": "youtube.com/tv"},
-  {"youtube3": "youtube.com/tv"},
+  {"youtube1": "https://www.youtube.com/tv"},
+  {"youtube2": "https://www.youtube.com/tv"},
+  {"youtube3": "https://www.youtube.com/tv"},
 ];
 
 void main() {
@@ -170,9 +170,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       buildControlButton(context, 'Mute',
                           icon: Icons.volume_off, action: 'mute'),
                       buildControlButton(context, 'Vol -',
-                          icon: Icons.volume_down, action: 'volume_down'),
+                          icon: Icons.volume_down, action: 'vol_down'),
                       buildControlButton(context, 'Vol +',
-                          icon: Icons.volume_up, action: 'volume_up'),
+                          icon: Icons.volume_up, action: 'vol_up'),
                     ],
                   ),
                   const SizedBox(height: 24),
