@@ -6,8 +6,8 @@ import 'ui/remote_button.dart';
 
 List<Map<String, String>> urls = [
   {"youtube1": "https://www.youtube.com/tv"},
-  {"youtube2": "https://www.youtube.com/tv"},
-  {"youtube3": "https://www.youtube.com/tv"},
+  {"aljazeera": "https://www.youtube.com/watch?v=bNyUyrR0PHo"
+},
 ];
 
 void main() {
@@ -77,12 +77,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    childAspectRatio: 1.5, // square cells
+                    childAspectRatio: 1.5, 
                   ),
                   shrinkWrap:
-                      true, // Use this to make the GridView take only the space it needs
+                      true,
                   physics:
-                      NeverScrollableScrollPhysics(), // Disable scrolling for the GridView
+                      NeverScrollableScrollPhysics(),
                   itemCount: urls.length,
                   itemBuilder: (context, index) {
                     final channelName = urls[index].keys.first;
@@ -90,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     return ElevatedButton(
                       onPressed: () async {
                         bool success = await ApiService.sendCommand('channel',
-                            url: channelUrl);
+                            channelUrl: channelUrl);
 
                         if (!success) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -136,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
               padding: const EdgeInsets.fromLTRB(
-                  16, 20, 16, 24), // Extra padding at top for breathing room
+                  16, 20, 16, 24), 
 
               child: Column(
                 children: [
